@@ -1,0 +1,22 @@
+cff-version: 1.2.0
+message: "Cite this repository as a research proposal and evaluation protocol. No experimental results or paper publication are claimed."
+type: software
+title: "RSI-Audit: A Proposal for Budget-Constrained Auditing of Self-Improving Coding Agents"
+version: "0.1.0-proposal"
+repository-code: "https://github.com/rita2126top-alt/rsi-audit-proposal"
+url: "https://github.com/rita2126top-alt/rsi-audit-proposal"
+authors:
+  - name: "rita2126top-alt"
+    website: "https://github.com/rita2126top-alt"
+abstract: >-
+  Proposed evaluation of reused validation panels, disjoint one-use panels,
+  and a terminal validation gate for persistent coding-agent harness
+  improvement with a frozen open model and independent final auditing.
+  This version contains a proposal, preregistration draft, and verified
+  references. GPU experiments have not been executed.
+keywords:
+  - agent evaluation
+  - self-improvement
+  - adaptive validation
+  - reproducibility
+license: MIT

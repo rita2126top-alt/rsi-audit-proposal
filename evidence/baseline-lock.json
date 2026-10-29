@@ -1,0 +1,79 @@
+{
+  "verified_on": "2026-10-28",
+  "recommendation": "Qwen2.5-Coder-7B-Instruct + EvalPlus (HumanEval+ v0.1.10 and MBPP+ v0.2.0)",
+  "rationale": "Short, executable Python tasks; public source and small downloadable data; simpler 28-day controlled harness-search audit than LiveCodeBench. Use as a protocol laboratory, not as evidence of contamination-free frontier capability.",
+  "model": {
+    "repo_id": "Qwen/Qwen2.5-Coder-7B-Instruct",
+    "revision": "c03e6d358207e414f1eca0bb1891e29f1db0e242",
+    "last_modified": "2025-01-12T02:03:41.000Z",
+    "license": "Apache-2.0",
+    "api_source": "https://huggingface.co/api/models/Qwen/Qwen2.5-Coder-7B-Instruct",
+    "model_card": "https://huggingface.co/Qwen/Qwen2.5-Coder-7B-Instruct/blob/c03e6d358207e414f1eca0bb1891e29f1db0e242/README.md"
+  },
+  "proposed_evaluator": {
+    "repo": "https://github.com/evalplus/evalplus",
+    "tag": "v0.3.1",
+    "commit": "e5d0ed0bab96280b60b637ec7f15b5e4841b0cb2",
+    "source": "https://api.github.com/repos/evalplus/evalplus/tags?per_page=30",
+    "status": "Source/version verified; not installed or executed in this session"
+  },
+  "reported_reference": {
+    "paper": "Qwen2.5-Coder Technical Report",
+    "version": "arXiv:2409.12186v3",
+    "paper_date": "2024-11-12",
+    "url": "https://arxiv.org/html/2409.12186v3#S7.T16",
+    "location": "Section 7.1, Table 16, Qwen2.5-Coder-7B-Instruct row",
+    "scores_percent": {
+      "HumanEval": 88.4,
+      "HumanEval+": 84.1,
+      "MBPP": 83.5,
+      "MBPP+": 71.7
+    },
+    "configuration_evidence": "Official instruct/eval_plus/test.sh uses greedy decoding, temperature=0, n_samples=1, bs=1, Qwen ChatML model_size=chat. It evaluates raw and sanitized generated outputs. model.py uses bf16, top_p=1.0 for greedy, max_new_tokens=2048, max_model_len=1536; exact matching environment is not fully pinned.",
+    "original_recipe_repo": "https://github.com/QwenLM/Qwen2.5-Coder",
+    "canonical_repo_after_rename": "https://github.com/QwenLM/Qwen3-Coder",
+    "inspected_commit": "33bc6aabd7791ad7b32f7e92104f11f2359ba890",
+    "historical_last_edit_commit": "cd315a6a969b87fb0a75d59d51f8468ea856514c",
+    "script_path": "qwencoder-eval/instruct/eval_plus/test.sh",
+    "requirements_evalplus": "0.2.1",
+    "vendored_evalplus_commit": "899b2b31bbe8d6e12337b865a8aa03fcd57c1121",
+    "vendored_evalplus_default_data": {
+      "HumanEval+": "v0.1.10",
+      "MBPP+": "v0.2.0"
+    },
+    "limits": "These are paper-reported external reference numbers, not a measurement of the proposed v0.3.1 rerun and not this project’s results. The exact weights/engine snapshot behind the paper scores is not fully identified. Re-establish baseline B0 under the same frozen configuration as all experimental policies before making paired comparisons."
+  },
+  "datasets": [
+    {
+      "name": "HumanEval+",
+      "version": "v0.1.10",
+      "task_count_verified": 164,
+      "asset_url": "https://github.com/evalplus/humanevalplus_release/releases/download/v0.1.10/HumanEvalPlus.jsonl.gz",
+      "gzip_bytes": 925932,
+      "gzip_sha256": "272720b90ac375502c8ed23cd791c2a93dfb22a911641a494da74a426c09f101",
+      "jsonl_sha256": "42526ec0e7d5f3ee0b06d6ced98f8c8bae3d76519151bfb3d36f79010645bd7f"
+    },
+    {
+      "name": "MBPP+",
+      "version": "v0.2.0",
+      "task_count_verified": 378,
+      "asset_url": "https://github.com/evalplus/mbppplus_release/releases/download/v0.2.0/MbppPlus.jsonl.gz",
+      "gzip_bytes": 336032,
+      "gzip_sha256": "af43697e8791c4c149bdfd6b489d8b5412507551ac20e28a439f650b8225db63",
+      "jsonl_sha256": "b54e762755248ca411b523c917fa9f93c07b5ff2966bf60b3917b853926a3dad"
+    }
+  ],
+  "verified_conflicts": [
+    "The EvalPlus leaderboard notes say MBPP+ v0.2.0 but retain obsolete 399-task text. The v0.2.0 release notes and downloaded data both establish 378 tasks.",
+    "The Qwen paper v3 LiveCodeBench table reports 18.2 for the 7B model, while nearby prose reports 37.6 and a 2407-2409 window. The blog mentions 2024.07-2024.11. Avoid these as an exact reference without further clarification.",
+    "Qwen official EvalPlus requirements pin 0.2.1; proposed EvalPlus 0.3.1 is a deliberate rerun setting, not an established source of the paper’s 84.1."
+  ],
+  "design_notes": [
+    "Freeze weights, tokenizer, prompt adapter, sampling settings, token budgets, sanitation, timeout policy, evaluator and dataset SHA-256 before search.",
+    "Reserve MBPP+ task partitions for development/search/validation/final audit by a precommitted split. HumanEval+ can be a distinct external evaluation domain, but public data cannot establish model-training decontamination.",
+    "The reported 84.1% full HumanEval+ score must not be used as baseline for a new subset, stochastic decoding setup, retry policy or split. Run paired B0 on the exact same tasks and budget.",
+    "Greedy decoding seeds do not create independent task evidence. Repeat independent search runs/splits; treat tasks and run trajectories as appropriate units, report uncertainty without treating correlated repeats as fresh tasks.",
+    "Do not publish downloaded benchmark answer/test files into the harness-search environment. All test variants of one task stay in the same split.",
+    "For adversarial score-integrity claims, the scorer must not execute generated code in its own process. Use separate worker sandboxes and a trusted read-only evaluator; timeouts and malformed outputs count as failures."
+  ]
+}

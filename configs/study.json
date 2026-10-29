@@ -1,0 +1,104 @@
+{
+  "project": "RSI-Audit",
+  "version": "0.1.0-proposal",
+  "status": "proposal_not_executed",
+  "direction": "eval",
+  "owner": "rita2126top-alt",
+  "model": {
+    "id": "Qwen/Qwen2.5-Coder-7B-Instruct",
+    "revision": "c03e6d358207e414f1eca0bb1891e29f1db0e242",
+    "weights_frozen": true
+  },
+  "evaluator": {
+    "repository": "https://github.com/evalplus/evalplus",
+    "tag": "v0.3.1",
+    "commit": "e5d0ed0bab96280b60b637ec7f15b5e4841b0cb2"
+  },
+  "data": {
+    "raw_tasks": 542,
+    "target_dev": 128,
+    "target_confirm": 192,
+    "target_audit": 222,
+    "minimum_audit": 200,
+    "unit": "task_family",
+    "actual_split_manifest": null,
+    "split_status": "freeze_after_grouping_before_main_results"
+  },
+  "search": {
+    "arms": [
+      "reuse",
+      "fresh",
+      "terminal"
+    ],
+    "primary_contrast": [
+      "fresh",
+      "reuse"
+    ],
+    "proposer_seeds": [
+      11,
+      29,
+      47,
+      71,
+      97,
+      131
+    ],
+    "rounds": 6,
+    "candidates_per_round": 2,
+    "proposer_temperature": 0.7,
+    "proposer_top_p": 0.95,
+    "proposer_max_output_tokens": 1024,
+    "strategy_prompt_max_tokens": 1024
+  },
+  "solver": {
+    "temperature": 0,
+    "max_calls_per_task": 2,
+    "max_total_input_tokens_per_task": 8192,
+    "max_total_output_tokens_per_task": 2048,
+    "repair_feedback": "public_examples_only",
+    "metric_name": "single_trajectory_solve_rate"
+  },
+  "gate": {
+    "panel_tasks": 32,
+    "paired_comparisons_per_arm_seed": 192,
+    "reuse_fresh_net_successes_required": 2,
+    "terminal_tasks": 192,
+    "terminal_net_successes_required": 12,
+    "success_rate_margin": 0.0625,
+    "feedback_to_search": "accept_reject_only",
+    "confidence_guarantee": false,
+    "terminal_dev_update": "strict_improvement_over_current; keep_current_on_tie; cached_current_dev_score"
+  },
+  "audit": {
+    "after_all_search_frozen": true,
+    "max_checkpoints_per_arm_seed": 7,
+    "primary_checkpoint": "final_round_deployed_state",
+    "historical_best_is_primary": false,
+    "false_promotion_is_population_truth": false
+  },
+  "budget": {
+    "gpu_type": "A100 80GB",
+    "trial_gpu_hours": 48,
+    "full_gpu_hours_including_trial": 480,
+    "trial_days": 7,
+    "full_days": 28,
+    "uncached_task_rollouts_upper_bound": 64836,
+    "proposer_calls_upper_bound": 216,
+    "phase_gpu_hours": {
+      "pilot": 48,
+      "search_and_confirmation": 240,
+      "audit": 144,
+      "recovery_reserve": 48
+    },
+    "fallback": "drop_terminal_before_main_study_if_infeasible_keep_six_seeds_six_rounds",
+    "count_scope": "main_study_excludes_pilot_and_retries"
+  },
+  "not_yet_frozen": [
+    "container_digest",
+    "inference_engine_version",
+    "python_dependency_lock",
+    "split_manifest_and_salt_commitment",
+    "cpu_memory_and_timeout_limits",
+    "executable_statistical_analysis",
+    "trusted_executor_integrity_evidence"
+  ]
+}
