@@ -11,3 +11,16 @@ runs/
 checkpoints/
 audit_secrets/
 *.log
+private-assets/
+private-bundle/
+private-pilot/
+private-model/
+private-runs/
+private-*/
+*.egg-info/
+build/
+dist/
+ledger.key
+audit.partial.jsonl
+tmp*/
+pip-ephem-wheel-cache-*/

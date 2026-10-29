@@ -3,19 +3,19 @@
 **方向：RSI 评测（eval）**  
 **申请账号：rita2126top-alt**  
 **周期：7 天试跑 / 28 天完整研究**  
-**状态：研究申请与预注册草案，尚无 GPU 实验结果**
+**状态：v0.2.0 实现已完成 CPU 演示与测试；真实 Docker 集成及 GPU 研究尚未运行**
 
 ## 摘要
 
 自改进智能体需要不断决定“这次修改是否值得保留”。反复复用一个小验证集可能使智能体适应这批题；轮换验证题可以减少这类反馈复用，却消耗更多独立数据，并可能降低单次决策的统计稳定性。把所有验证机会留到最后，又会改变中间迭代的信息条件。哪种分配方式更有效，必须在明确的资源上限和独立审计下比较。
 
-本项目冻结 Qwen2.5-Coder-7B-Instruct 权重，让智能体从开发集失败轨迹中修改跨任务持久的提示与修复策略。在 EvalPlus 上比较固定验证分片复用、一次性轮换分片和末次一次验证三种策略；每组使用相同的逻辑验证额度、生成 token 上限和初始配置。所有搜索完成并提交 checkpoint 哈希后，由独立评测服务计算留出审计集上的终态解题成功率、候选相对父版本的验证—审计增益差、审计退步晋升及实际成本。
+本项目冻结 Qwen2.5-Coder-7B-Instruct 权重，让智能体从开发集失败轨迹中修改跨任务持久的提示与修复策略。在 EvalPlus 上比较固定验证分片复用、一次性轮换分片和末次一次验证三种策略；每组使用相同的逻辑验证额度、生成 token 上限和初始配置。所有搜索完成并提交 checkpoint 哈希后，可信协调器进入审计阶段，计算留出审计集上的终态解题成功率、候选相对父版本的验证—审计增益差、观察到的审计退步晋升及实际成本。当前协调、门控与主机计分位于同一可信进程，候选程序单独在 Docker 中执行。
 
 贡献是一个范围清楚、能复现、包含负结果的验证预算实验与评测协议。我们不声称首创门控、验证器演化或自适应 holdout 理论，也不预设轮换策略一定胜出。
 
 ### English abstract
 
-RSI-Audit studies how a limited validation budget should be allocated during persistent coding-agent self-improvement. With frozen open model weights and a restricted, persistent harness state, we compare reused validation panels, disjoint one-use panels, and a terminal one-shot gate under common logical evaluation and token ceilings. After all trajectories and checkpoints are frozen, a separate evaluator audits final utility, paired validation-to-audit optimism, regressing promotions, and realized compute. The intended contribution is an openly reproducible, budget-accounted empirical protocol, rather than a new verifier or a claim of generally certified recursive improvement. Public benchmark contamination, small panels, and finite search horizons are explicit limitations.
+RSI-Audit studies how a limited validation budget should be allocated during persistent coding-agent self-improvement. With frozen open model weights and a restricted, persistent harness state, we compare reused validation panels, disjoint one-use panels, and a terminal one-shot gate under common logical evaluation and token ceilings. After all trajectories and checkpoints are frozen, the trusted coordinator enters the audit phase and measures final utility, paired validation-to-audit optimism, observed regressing promotions, and realized compute. Coordination, gating, and scoring currently share a trusted host process; candidate programs execute in Docker. Version 0.2.0 has passed CPU tests and a synthetic end-to-end demonstration; real Docker integration and GPU experiments remain unrun. The intended contribution is an openly reproducible, budget-accounted empirical protocol. Public benchmark contamination, small panels, finite search horizons, and the implementation's trust assumptions are explicit limitations.
 
 ## 1. 为什么选择这个方向
 
@@ -45,15 +45,17 @@ RSI-Audit studies how a limited validation budget should be allocated during per
 
 ## 3. 可追溯基线
 
-模型固定为 `Qwen/Qwen2.5-Coder-7B-Instruct`，revision 为 `c03e6d358207e414f1eca0bb1891e29f1db0e242`。评测代码采用 `evalplus/evalplus` 的真实标签 `v0.3.1`，commit 为 `e5d0ed0bab96280b60b637ec7f15b5e4841b0cb2`。HumanEval+ v0.1.10 和 MBPP+ v0.2.0 的文件与 SHA-256 已核实，详见 [基线记录](docs/BASELINE.md)。
+模型固定为 `Qwen/Qwen2.5-Coder-7B-Instruct`，revision 为 `c03e6d358207e414f1eca0bb1891e29f1db0e242`。数据恢复与计分语义参考 `evalplus/evalplus` 的真实标签 `v0.3.1`、commit `e5d0ed0bab96280b60b637ec7f15b5e4841b0cb2`；执行器与可信计分由本仓库实现，不是原样调用上游 evaluator。HumanEval+ v0.1.10 和 MBPP+ v0.2.0 的文件与 SHA-256 已核实，详见 [基线记录](docs/BASELINE.md)。
+
+当前推理代码要求 `transformers==4.51.3`、`torch==2.6.0`，使用单 GPU、串行 bfloat16 推理，离线加载固定模型与 tokenizer revision。真实 GPU 兼容性、吞吐和数值表现仍须试跑验证。Docker 每次任务批次限制为 30 秒、512 MiB、1 CPU；这些限制和上游时间策略不同，特殊 oracle 的兼容范围见 [执行边界](docs/EXECUTION_SECURITY.md)。
 
 Qwen 技术报告 v3 表 16 的 7B-Instruct 完整数据结果为 HumanEval+ **84.1%**、MBPP+ **71.7%**。[hui2024qwen25coder] 这些是原作者报告的外部参考，不是本项目成绩。官方历史 recipe 使用的 EvalPlus 与本项目拟用版本存在差异；新拆分、两次调用上限也不同于原始单次生成设置。因此第一周必须重新建立同配置的本地初始策略 B0，所有研究结论均与本地 B0 或本轮父版本配对比较。
 
-**防止审计泄漏：** 可以核验原论文的全量报告值，但不能在主试验冻结前运行一遍全部 542 题并查看逐题结果。环境与 B0 试跑只使用开发分区；全量/审计成绩必须等所有搜索冻结后统一读取。
+**防止审计反馈泄漏：** 可以核验原论文的全量报告值；可信数据准备程序也需要运行全部参考实现，预计算隐藏测试的期望输出并核验计分兼容性。这不等于运行模型 B0。正式搜索冻结前，模型环境与 B0 试跑只使用开发分区，不能运行全部 542 题的模型评测并查看逐题成绩；审计成绩在所有搜索冻结后统一读取。
 
 ## 4. 方法与动作空间
 
-智能体修改的对象是**跨任务保留的 harness 状态**，包括长度受限的策略提示、预定义错误反馈格式和修复顺序。每轮由当前状态下的同一固定模型根据开发集失败轨迹提出两份 JSON 配置；冻结的验证器检查结构、长度与可选值，开发集择优后进入门控。更新后的状态影响下一轮提议与解题，因此具有持久的迭代自改进过程。
+智能体修改的对象是**跨任务保留的 harness 状态**，包括长度受限的策略提示、预定义错误反馈格式，以及修复提示中两类诊断块的排列顺序。`repair_order` 仅控制 syntax/public-example 诊断文本的先后；实际执行始终先做语法检查，通过后才运行公开示例。每轮由当前状态下的同一固定模型根据开发集失败轨迹提出两份 JSON 配置；冻结的验证器检查结构、长度与可选值，开发集择优后进入门控。更新后的状态影响下一轮提议与解题，因此具有持久的迭代自改进过程。
 
 模型权重、tokenizer、推理引擎、开发数据、题目划分、工具实现、计分程序、资源限制及所有审计权限均不允许被候选修改。单道任务最多两次 solver 调用，合计输出不超过 2048 token；只返回一个最终程序。因此主指标称为“单轨迹解题成功率”，不冒充原始模型的单次 pass@1。
 
@@ -69,39 +71,41 @@ Qwen 技术报告 v3 表 16 的 7B-Instruct 完整数据结果为 HumanEval+ **8
 
 ## 5. 数据、完整性与统计
 
-542 道原始任务按来源及重复/近重复任务族划分，目标为开发 128、验证 192、审计 222。所有同题测试变体与近重复任务必须位于同一分区；最终任务数与分片大小以试跑阶段冻结的 manifest 为准，不能为了凑数拆散任务族。审计至少 200 题；若不能满足预定规模，先修订预注册并公开原因，禁止看完审计结果后再换题或改方案。
+542 道原始任务按来源及任务族划分，正式目标为开发 128、验证 192、审计 222。实现会归并规范化题面或参考函数 AST 完全相同的任务，并支持人工复核的 family map；它不能自动保证发现所有语义近重复。所有同题测试变体和已识别重复族必须位于同一分区。当前程序要求精确目标数量，不能分配时中止，不会自动拆族或改变规模。任何改动须在正式试验前登记，保留至少 200 道审计题并重新计算门槛；禁止看完审计结果后换题或改方案。
 
-搜索进程只看到开发数据和允许的门控信号。验证题由独立服务运行，向提议器最多返回接受/拒绝一个比特，不返回题目、测试或逐题分数；确认任务只对冻结的 solver 临时可见，不留入下一轮记忆。审计集在全部循环和 checkpoint 冻结前保持不可读。审计结果不会回流用于修改任何候选。
+当前实现的可信 `Engine` 在搜索阶段读取开发与确认分区，并在同一主机进程中计算门控。提议模型的上下文只包含当前策略及开发失败摘要，不包含确认题、隐藏测试或确认逐题分数；门控通过保留或替换下一轮父策略影响搜索。解题模型会看到当前正在评估的题面，但不接收隐藏期望输出。`Engine.search()` 不读取审计内容，只有完成全部搜索并 `freeze` 后才能调用审计路径。这是应用流程与提示构造约束，不是把所有搜索组件放进独立 OS 权限域；数据准备者、协调器和同一主机账号仍受信任。审计结果不用于修改任何候选。
 
-候选程序在不联网、无凭据、临时文件系统、限制 CPU/内存/时间的执行沙箱运行。可信监督进程在沙箱外调度隐藏测试；独立评分进程只读取监督器生成的任务级通过/失败记录，不执行候选程序、不相信候选 stdout 中的“分数”。候选不挂载测试答案、主机日志或计分凭据。异常、超时与无效输出按预注册规则计失败。正式运行前需通过越权写入、伪造结果、读取隐藏文件和联网等完整性检查；本提案不声称这些设施今天已经实现。
+候选程序在禁用网络、只读根文件系统、受限临时目录和资源额度的 Docker 容器中运行；不挂载主机路径，不传入凭据。worker 只收到代码、函数入口和调用参数，不接收期望输出，也没有计分权。可信主机将有界编码的返回值与预计算期望值及特殊 oracle 比较，不执行候选代码，不相信 stdout 中的“通过”声明。候选异常、任务超时或协议错误按失败记录；基础设施错误、不支持的 oracle 和研究阶段预算耗尽会中止，不伪造为模型失败。Docker 共享宿主内核，不能视为形式化安全保证。相关实现及 CPU 边界测试已有，真实 Docker 集成与全部参考任务兼容检查尚未运行，需在专用执行机器上完成后才能开展 GPU 研究。
 
-主分析是 Fresh–Reuse 终态差，使用来源分层、任务族与搜索轨迹两个维度的配对重采样，公开所有种子结果和 95% 区间。六条轨迹与同一批任务是交叉重复，不作为 6×222 道独立题。次分析的 optimism 使用“候选减父版本”的配对验证增益减同一对版本的审计增益，避免直接比较不同难度面板的原始分数。
+主分析是 Fresh–Reuse 终态差，已实现按来源加权、在任务族与搜索轨迹两个交叉维度上配对重采样，输出所有种子结果和 95% percentile bootstrap 区间。六条轨迹与同一批任务是交叉重复，不作为 6×222 道独立题。次分析的 optimism 使用“候选减父版本”的配对验证增益减同一对版本的审计增益，避免直接比较不同难度面板的原始分数。
 
-对晋升记录分别标为审计支持的退步、支持的无退步/提升、或证据不足；历史 checkpoint 的多重比较与不确定性单列，经验负差比例不能冒充总体错误晋升概率。公开旧数据无法证明消除了预训练污染，本研究只解释固定平台中的选择与评测行为。[liu2023evalplus; blum2015ladder; dwork2015reusable]
+v0.2.0 对原草案作出明确的统计修订：历史 checkpoint 仅报告描述性的审计差值、观察到的退步/提升/持平及 optimism，不输出 Holm 校正后的“审计支持”标签。接受修改的经验负差比例不代表总体错误晋升概率；零接受时该比例为 NA。若要加入这类推断，须在正式审计前登记新的方法与实现修订。公开旧数据无法证明消除了预训练污染，本研究只解释固定平台中的选择与评测行为。[liu2023evalplus; blum2015ladder; dwork2015reusable]
 
 ## 6. 算力、周期与里程碑
 
-申请 **1×A100 80GB**。试跑 **48 GPU 卡时 / 7 天**；全程 **480 GPU 卡时 / 28 天，包含试跑**。这是计划预算，须用试跑实测的 token、任务耗时和 CPU 测试开销验证。卡时不等于日历时长。
+申请 **1×A100 80GB**。试跑 **48 GPU 卡时 / 7 天**，分配为搜索 36、审计 12；正式搜索 240、正式审计 144，另预留恢复 48；合计 **480 GPU 卡时 / 28 天，包含试跑**。这些是待资助与试跑验证的分配计划，卡时不等于日历时长。
 
 | 时间 | 交付与验收 |
 | --- | --- |
-| 第 1–2 天 | 固定模型/代码/数据；构建开发专用试跑分区；实现结果来源检查与隔离边界；记录版本与许可。 |
+| 第 1–2 天 | 在执行机器验证现有 Docker/计分实现；固定模型/代码/数据；构建开发专用试跑分区；记录版本与许可。 |
 | 第 3–7 天 | 用开发数据跑 B0 与各组两轮小试验；完成完整性检查、吞吐测量与统计模拟；冻结正式配置。产出试跑报告，满足条件才继续。 |
 | 第 8–18 天 | 六个种子、六轮的正式搜索与门控；逐轮保存候选、可信执行记录、接受决策、token 和 GPU 账本。 |
 | 第 19–23 天 | 全部轨迹提交哈希后统一做终态及预定历史 checkpoint 审计；禁止再优化候选。 |
 | 第 24–28 天 | 配对统计、失败案例和成本分析；复核完整性；发布代码、记录和技术报告，包括负结果。 |
 
-正式主试验未缓存上限约为 **64,836 条任务轨迹**，另有 216 次候选提议；试跑与恢复重试另计，所有阶段共同受 480 卡时总上限约束；最多约 1.33 亿 solver 输出 token，输入和 CPU 测试同样计入成本。已重复的精确版本/任务结果可以按统一规则复用，必须记录命中和实际节约，不能为“配平”预算空耗 GPU。详细推导见 [COMPUTE.md](docs/COMPUTE.md)。
+正式主试验未缓存上限约为 **64,836 条任务轨迹**，另有 216 次候选提议；试跑与恢复重试另计。最多约 1.33 亿 solver 输出 token，输入和执行墙钟时间另记；当前主机 CPU 秒未完整汇总，以 unknown 标识。精确版本/任务结果按统一规则复用，记录缓存命中和实际消耗。
+
+实现按 run 累计搜索/审计阶段占用时间，CLI 将模型加载时间计入对应阶段；操作间检查余量，并给生成器传入软 `max_time`。它不能替代外部调度器的硬时限。48 卡时恢复预留不会自动动用，跨试跑、正式 run、恢复 run 的 480 卡时总额需用 allocation 日志与外部用量核对；代码没有全项目自动总额管理器。CPU 数据准备单独记墙钟耗时，CPU 秒仍为 unknown。详细推导与限制见 [COMPUTE.md](docs/COMPUTE.md)。
 
 若完整三组超出预算，预先约定只删除解释性的 Terminal 组，保留 Fresh/Reuse 六种子六轮主比较和终态审计。若主比较仍不能在预算内完成，交付试跑与失败诊断，申请方重新评议后再扩展，不暗中减少样本并保持原结论强度。
 
 ## 7. 预期成果与成功/失败标准
 
-计划交付可执行的受限 harness 搜索器、隔离评测服务、数据划分承诺与解封记录、资源账本、逐题审计记录、统计程序和技术报告。贡献包括可被他人复用的评测协议，以及门控策略何时值得其验证成本的证据。
+v0.2.0 已包含受限 harness 搜索器、Docker 执行器、可信主机计分、数据划分承诺、资源账本和统计程序，并完成 CPU 测试与合成数据端到端演示。下一阶段交付真实运行的冻结/解封记录、逐题审计数据、成本核对和技术报告。贡献包括可被他人复用的评测协议，以及门控策略何时值得其验证成本的证据。
 
-**工程成功**要求他人能从固定配置重建决策，候选无法伪造计分，预算记录覆盖搜索、验证和审计。**科学成功**要求可解释地回答主比较，给出区间和边界，不要求任何一组必然获胜。显著负结果、过低晋升率或资源不足导致的不确定结果都需要公开。
+**工程成功**要求他人能从固定配置重建决策，用真实容器测试验证已登记威胁模型中的计分隔离，并使预算记录覆盖搜索、验证、审计与外部总额核对。CPU 测试不能代替这一步。**科学成功**要求可解释地回答主比较，给出区间和边界，不要求任何一组必然获胜。负结果、过低晋升率或资源不足导致的不确定结果都需要公开。
 
-项目不会以多次尝试后的最高审计分作为最终结果，也不会为提高申请通过率虚构已有论文、GPU 成绩或推荐人。当前没有本项目实验结果。
+项目不会以多次尝试后的最高审计分作为最终结果，也不会为提高申请通过率虚构已有论文、GPU 成绩或推荐人。当前只有软件验证结果；合成演示不构成模型性能或研究结论。
 
 ## 8. 申请人、开源与引用
 

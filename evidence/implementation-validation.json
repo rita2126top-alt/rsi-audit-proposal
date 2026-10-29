@@ -1,0 +1,73 @@
+{
+  "schema_version": 1,
+  "version": "0.2.0",
+  "checked_on_utc": "2026-10-29",
+  "python": "3.12.14",
+  "numpy": "2.3.5",
+  "implementation_source_sha256": "0403710b717614bddc69208a2fddc6c275a98ca3aa081b904e9c54358dc25fd6",
+  "unit_tests": {
+    "command": "python -m unittest discover -s tests -q",
+    "discovered": 130,
+    "passed": 126,
+    "skipped": 4,
+    "errors": 0,
+    "failures": 0,
+    "skip_reason": "Docker CLI / explicit RSI_AUDIT_TEST_IMAGE unavailable",
+    "last_run_seconds": 25.94,
+    "isolation": "Each engine test independently builds its own run; no shared mutable disk templates"
+  },
+  "compileall": "passed",
+  "wheel": {
+    "built": true,
+    "entry_point_and_third_party_licenses_checked": true,
+    "sha256": "4600997a665b02066b66df4b131c69bb1843904f1a5b9f60dbe59a55dfdf1cca"
+  },
+  "real_data_qa": {
+    "tasks": 542,
+    "exact_duplicate_families": 541,
+    "dev": 128,
+    "panels": [
+      32,
+      32,
+      32,
+      32,
+      32,
+      32
+    ],
+    "audit": 222,
+    "pilot": [
+      16,
+      8,
+      8,
+      8
+    ],
+    "archive_and_jsonl_hashes": "verified",
+    "family_isolation_and_wire_roundtrip": "verified",
+    "canonical_programs_executed": false,
+    "formal_split_frozen": false
+  },
+  "synthetic_demo": {
+    "config_mode": "demo",
+    "arms": 3,
+    "seeds": 3,
+    "rounds": 3,
+    "audit_tasks": 16,
+    "pipeline": "search/freeze/audit/analyze/verify passed",
+    "ledger_records": 1855,
+    "source_sha256": "0403710b717614bddc69208a2fddc6c275a98ca3aa081b904e9c54358dc25fd6",
+    "model_calls": 0,
+    "gpu_hours": 0.0,
+    "report": "examples/synthetic-report.md",
+    "machine_readable": "examples/synthetic-analysis.json",
+    "cross_command_verification": "passed with authenticated persistent command journal"
+  },
+  "not_run": [
+    "real Docker integration",
+    "full canonical execution and oracle compatibility",
+    "real model GPU inference",
+    "pilot throughput measurement",
+    "formal research experiment"
+  ],
+  "interpretation": "Engineering evidence only; synthetic score differences are not research results.",
+  "resolved_integration_issue": "Replaced deletion-only completion marker with persistent HMAC-linked command start/completion journal; active, missing, stale and forged completion evidence is rejected"
+}

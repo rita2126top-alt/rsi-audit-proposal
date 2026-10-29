@@ -1,6 +1,6 @@
 {
   "project": "RSI-Audit",
-  "version": "0.1.0-proposal",
+  "version": "0.2.0",
   "status": "proposal_not_executed",
   "direction": "eval",
   "owner": "rita2126top-alt",
@@ -93,12 +93,21 @@
     "count_scope": "main_study_excludes_pilot_and_retries"
   },
   "not_yet_frozen": [
-    "container_digest",
-    "inference_engine_version",
-    "python_dependency_lock",
-    "split_manifest_and_salt_commitment",
-    "cpu_memory_and_timeout_limits",
-    "executable_statistical_analysis",
-    "trusted_executor_integrity_evidence"
-  ]
+    "verified_container_digest_and_base_image_digest",
+    "gpu_driver_and_complete_resolved_dependencies",
+    "formal_split_manifest_and_external_timestamp",
+    "docker_integration_and_full_canonical_compatibility",
+    "measured_pilot_throughput_and_feasibility"
+  ],
+  "implementation_status": "implemented_cpu_verified_gpu_and_docker_unverified",
+  "implemented_runtime": {
+    "inference_engine": "transformers==4.51.3",
+    "torch": "2.6.0",
+    "execution": "Docker, image ID recorded before search",
+    "timeout_seconds_per_execution": 30,
+    "memory_mb": 512,
+    "cpus": 1.0,
+    "analysis": "paired crossed seed/family bootstrap; descriptive checkpoints only",
+    "repair_order": "diagnostic blocks in repair prompt, syntax checked before execution"
+  }
 }

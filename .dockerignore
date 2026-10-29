@@ -1,0 +1,6 @@
+**
+!docker/
+!docker/Dockerfile
+!docker/worker.py
+!rsi_audit/
+!rsi_audit/wire.py

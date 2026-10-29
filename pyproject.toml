@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "rsi-audit"
+version = "0.2.0"
+description = "Budget-constrained experiments and independent audits for persistent coding-agent improvement"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+authors = [{name = "rita2126top-alt"}]
+dependencies = ["numpy>=1.26,<3"]
+
+[project.optional-dependencies]
+gpu = ["torch==2.6.0", "transformers==4.51.3"]
+
+[project.scripts]
+rsi-audit = "rsi_audit.cli:main"
+
+[tool.setuptools]
+license-files = ["LICENSE", "THIRD_PARTY_NOTICES.md", "licenses/*.txt"]
+
+[tool.setuptools.packages.find]
+include = ["rsi_audit*"]
